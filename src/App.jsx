@@ -1,9 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import reactLogo from "./assets/react.svg";
+import "./App.css";
+import "./firebaseConfig";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "./firebaseConfig";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [instructorLatitude, setInstructorLatitude] = useState(0);
+  const [instructorLongitude, setInstructorLongitude] = useState(0);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, "instructor_location", "1zgqpcjSN7nvIJgDsjqw"),
+      (doc) => {
+        console.log("Current data: ", doc.data());
+        setInstructorLatitude(doc.data().location._lat);
+        setInstructorLongitude(doc.data().location._long);
+      }
+    );
+
+    return unsub;
+  }, []);
 
   return (
     <div className="App">
@@ -17,18 +34,12 @@ function App() {
       </div>
       <h1>Hackathon Learner</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+        <h2>Instructor location</h2>
+        <p>{`Latitude: ${instructorLatitude}`}</p>
+        <p>{`Longitude: ${instructorLongitude}`}</p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
