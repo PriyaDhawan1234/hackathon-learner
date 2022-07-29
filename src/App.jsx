@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
+import Map from "./Map";
 import "./firebaseConfig";
-import { doc, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  query,
+  collection,
+  where,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "./firebaseConfig";
 
 function App() {
@@ -13,13 +21,25 @@ function App() {
     const unsub = onSnapshot(
       doc(db, "instructor_location", "1zgqpcjSN7nvIJgDsjqw"),
       (doc) => {
-        console.log("Current data: ", doc.data());
         setInstructorLatitude(doc.data().location._lat);
-        setInstructorLongitude(doc.data().location._long);
+        setInstructorLongitude(doc.data().location._l);
       }
     );
-
     return unsub;
+  }, []);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, "instructor_location"),
+      where("journey_id", "==", "1"),
+      orderBy("timestamp", "desc")
+    );
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        console.log(doc.data().location);
+      });
+    });
+    return unsubscribe;
   }, []);
 
   return (
@@ -38,6 +58,7 @@ function App() {
         <p>{`Latitude: ${instructorLatitude}`}</p>
         <p>{`Longitude: ${instructorLongitude}`}</p>
       </div>
+      <Map></Map>
     </div>
   );
 }
